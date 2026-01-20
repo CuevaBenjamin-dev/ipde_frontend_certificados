@@ -1,0 +1,110 @@
+<div class="container">
+  <!-- HEADER -->
+  <header class="header">
+    <h1>Generador de Certificados</h1>
+    <p>
+      Complete los datos y genere uno o varios certificados en un solo archivo
+      PPTX.
+    </p>
+  </header>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
+    <div formArrayName="modelos">
+      <div
+        class="modelo-card"
+        *ngFor="let modelo of modelos.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <div class="modelo-header">
+          <h3>Modelo {{ i + 1 }}</h3>
+
+          <button
+            type="button"
+            class="btn-remove"
+            (click)="eliminarModelo(i)"
+            *ngIf="modelos.length > 1"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- TIPO -->
+        <div class="field">
+          <label>Tipo de certificado</label>
+          <select formControlName="tipoModelo">
+            <option value="" disabled>Seleccione una opción</option>
+            <option value="DIPLOMADO">Diplomado</option>
+            <option value="PROGRAMA DE ESPECIALIZACIÓN">
+              Programa de Especialización
+            </option>
+            <option value="CURSO">Curso</option>
+          </select>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label>Nombres</label>
+            <input type="text" formControlName="nombres" />
+          </div>
+
+          <div class="field">
+            <label>Apellidos</label>
+            <input type="text" formControlName="apellidos" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Tema</label>
+          <input type="text" formControlName="temaDiplomado" />
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label>Fecha inicio</label>
+            <input type="date" formControlName="fechaInicio" />
+          </div>
+
+          <div class="field">
+            <label>Fecha fin</label>
+            <input type="date" formControlName="fechaFin" />
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label>Horas académicas</label>
+            <input type="number" formControlName="horasAcademicas" />
+          </div>
+
+          <div class="field">
+            <label>Créditos académicos</label>
+            <input type="number" formControlName="creditosAcademicos" />
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="field">
+            <label>Folio N°</label>
+            <input type="text" formControlName="folioNumero" />
+          </div>
+
+          <div class="field">
+            <label>Fecha de emisión</label>
+            <input type="date" formControlName="fechaEmision" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="actions">
+      <button type="button" class="btn-add" (click)="agregarModelo()">
+        + Agregar modelo
+      </button>
+
+      <button type="submit" class="btn-submit">
+        Generar PPTX
+      </button>
+    </div>
+  </form>
+</div>
