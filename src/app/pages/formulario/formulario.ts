@@ -22,6 +22,7 @@ export class Formulario {
     INSTITUTO: '#3b3a40',
     UNIVERSIDAD_2QRS: '#D14900',
     UNIVERSIDAD_AZUL: '#004B57',
+    COLEGIO_ABOGADOS_CALLAO: '#b7ff00', // azul institucional sobrio
   };
 
   private HORAS_A_MESES: Record<number, number> = {
@@ -43,9 +44,12 @@ export class Formulario {
       modelos: this.fb.array([this.crearModeloForm()]),
     });
 
-    // color base inicial
     this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
-    this.renderer.setStyle(document.body, 'transition', 'background-color 0.4s ease');
+    this.renderer.setStyle(
+      document.body,
+      'transition',
+      'background-color 0.4s ease'
+    );
   }
 
   get modelos(): FormArray {
@@ -90,10 +94,7 @@ export class Formulario {
     });
   }
 
-  crearModeloForm(
-    nombres: string = '',
-    apellidos: string = ''
-  ): FormGroup {
+  crearModeloForm(nombres: string = '', apellidos: string = ''): FormGroup {
     const grupo = this.fb.group({
       modeloCertificado: ['', Validators.required],
       tipoModelo: ['', Validators.required],
