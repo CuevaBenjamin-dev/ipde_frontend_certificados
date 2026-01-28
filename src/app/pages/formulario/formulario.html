@@ -2,10 +2,7 @@
   <!-- HEADER -->
   <header class="header">
     <h1>Generador de Certificados</h1>
-    <p>
-      Complete los datos y genere uno o varios certificados en un solo archivo
-      PPTX.
-    </p>
+    <p>Complete los datos y genere uno o varios certificados en un solo archivo PPTX.</p>
   </header>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form">
@@ -36,9 +33,7 @@
             <option value="INSTITUTO">Instituto</option>
             <option value="UNIVERSIDAD_2QRS">Universidad 2QRS</option>
             <option value="UNIVERSIDAD_AZUL">Universidad Azul</option>
-            <option value="COLEGIO_ABOGADOS_CALLAO">
-              Colegio de Abogados del Callao
-            </option>
+            <option value="COLEGIO_ABOGADOS_CALLAO">Colegio de Abogados del Callao</option>
           </select>
         </div>
 
@@ -48,9 +43,7 @@
           <select formControlName="tipoModelo">
             <option value="" disabled>Seleccione una opción</option>
             <option value="DIPLOMADO">Diplomado</option>
-            <option value="PROGRAMA DE ESPECIALIZACIÓN">
-              Programa de Especialización
-            </option>
+            <option value="PROGRAMA DE ESPECIALIZACIÓN">Programa de Especialización</option>
             <option value="CURSO">Curso</option>
           </select>
         </div>
@@ -112,13 +105,18 @@
 
     <!-- ACCIONES -->
     <div class="actions">
-      <button type="button" class="btn-add" (click)="agregarModelo()">
-        + Agregar modelo
-      </button>
+      <button type="button" class="btn-add" (click)="agregarModelo()">+ Agregar modelo</button>
 
-      <button type="submit" class="btn-submit">
-        Generar PPTX
-      </button>
+      <a
+        href="https://drive.google.com/file/d/1UBLykyA21zRTl-sqQzOj-y42hMMUhU_H/view"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn-folios"
+      >
+        N° de Folios
+      </a>
+
+      <button type="submit" class="btn-submit">Generar PPTX</button>
     </div>
   </form>
 </div>

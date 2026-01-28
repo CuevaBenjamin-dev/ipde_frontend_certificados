@@ -1,12 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, Renderer2 } from '@angular/core';
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormularioService } from '../../services/formularioService';
 
 @Component({
@@ -22,34 +16,143 @@ export class Formulario {
     INSTITUTO: '#3b3a40',
     UNIVERSIDAD_2QRS: '#D14900',
     UNIVERSIDAD_AZUL: '#004B57',
-    COLEGIO_ABOGADOS_CALLAO: '#b7ff00', // azul institucional sobrio
+    COLEGIO_ABOGADOS_CALLAO: '#0e8914', // azul institucional sobrio
   };
 
   private HORAS_A_MESES: Record<number, number> = {
+    40: 1,
+    50: 1,
+    60: 1,
+    70: 1,
+    80: 1,
+    100: 1,
     120: 1,
+    130: 2,
+    140: 2,
+    150: 2,
+    160: 2,
+    170: 2,
+    180: 2,
+    190: 2,
+    200: 2,
+    210: 2,
+    220: 2,
+    230: 2,
     240: 2,
+    250: 2,
+    260: 3,
+    270: 3,
+    280: 3,
+    290: 3,
+    300: 3,
+    310: 3,
+    320: 3,
+    330: 3,
+    340: 3,
+    350: 3,
     360: 3,
+    370: 4,
+    380: 4,
+    390: 4,
+    400: 4,
+    410: 4,
     420: 4,
+    430: 4,
+    440: 4,
+    450: 4,
+    460: 4,
+    470: 4,
+    480: 5,
+    490: 5,
+    500: 5,
+    510: 5,
+    520: 5,
+    530: 5,
+    540: 5,
+    550: 5,
+    560: 5,
+    570: 6,
+    580: 6,
+    590: 6,
     600: 6,
+    610: 6,
+    620: 6,
+    630: 6,
+    640: 6,
+    650: 6,
+    660: 6,
+    670: 6,
+    680: 7,
+    690: 7,
+    700: 7,
+    710: 7,
+    720: 7,
+    730: 7,
+    740: 7,
+    750: 7,
+    760: 7,
+    770: 7,
+    780: 8,
+    790: 8,
+    800: 8,
+    810: 8,
+    820: 8,
+    830: 8,
     840: 8,
+    850: 8,
+    860: 8,
+    870: 9,
+    880: 9,
+    890: 9,
+    900: 9,
+    910: 9,
+    920: 9,
+    930: 9,
+    940: 9,
+    950: 9,
+    960: 9,
+    970: 10,
+    980: 10,
+    990: 10,
+    1000: 10,
+    1010: 10,
+    1020: 10,
+    1030: 10,
+    1040: 10,
+    1050: 10,
+    1060: 10,
+    1070: 10,
+    1080: 11,
+    1090: 11,
+    1100: 11,
+    1110: 11,
+    1120: 11,
+    1130: 11,
+    1140: 11,
+    1150: 12,
+    1160: 12,
+    1170: 12,
+    1180: 12,
+    1190: 12,
     1200: 12,
+    1210: 12,
+    1220: 12,
+    1230: 12,
+    1240: 12,
+    1250: 12,
   };
 
   constructor(
     private fb: FormBuilder,
     private service: FormularioService,
-    private renderer: Renderer2
+    private renderer: Renderer2,
   ) {
     this.form = this.fb.group({
       modelos: this.fb.array([this.crearModeloForm()]),
     });
 
     this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
-    this.renderer.setStyle(
-      document.body,
-      'transition',
-      'background-color 0.4s ease'
-    );
+    this.renderer.setStyle(document.body, 'transition', 'background-color 0.4s ease');
   }
 
   get modelos(): FormArray {
@@ -77,7 +180,7 @@ export class Formulario {
     const fechaBase = new Date(
       fechaFin.getFullYear(),
       fechaFin.getMonth() - meses,
-      fechaFin.getDate()
+      fechaFin.getDate(),
     );
 
     let fechaInicio = new Date(fechaBase);
@@ -114,17 +217,11 @@ export class Formulario {
       fechaEmision: ['', Validators.required],
     });
 
-    grupo.get('fechaFin')?.valueChanges.subscribe(() =>
-      this.calcularFechaInicio(grupo)
-    );
+    grupo.get('fechaFin')?.valueChanges.subscribe(() => this.calcularFechaInicio(grupo));
 
-    grupo.get('horasAcademicas')?.valueChanges.subscribe(() =>
-      this.calcularFechaInicio(grupo)
-    );
+    grupo.get('horasAcademicas')?.valueChanges.subscribe(() => this.calcularFechaInicio(grupo));
 
-    grupo.get('modeloCertificado')?.valueChanges.subscribe(() =>
-      this.actualizarColorFondo()
-    );
+    grupo.get('modeloCertificado')?.valueChanges.subscribe(() => this.actualizarColorFondo());
 
     return grupo;
   }

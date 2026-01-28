@@ -99,6 +99,14 @@ select {
   cursor: pointer;
 }
 
+.btn-add:hover {
+  background: #d1d5db;
+}
+
+.btn-add:active {
+  background: #9ca3af;
+}
+
 .btn-submit {
   background: #2563eb;
   color: white;
@@ -109,10 +117,39 @@ select {
   font-weight: 700;
 }
 
+.btn-submit:hover {
+  background: #1d4ed8;
+}
+
+.btn-submit:active {
+  background: #1e40af;
+}
+
 .btn-remove {
   background: transparent;
   border: none;
   font-size: 18px;
   cursor: pointer;
   color: #ef4444;
+}
+
+.btn-folios {
+  padding: 14px 26px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 14px;
+  background-color: #fff700;
+  color: #111827;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-folios:hover {
+  background-color: #facc15;
+}
+
+.btn-folios:active {
+  background-color: #eab308;
 }
