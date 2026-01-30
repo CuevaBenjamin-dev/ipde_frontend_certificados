@@ -302,4 +302,20 @@ export class Formulario {
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   }
+
+  limpiarFormulario(): void {
+    // 1. Limpiar FormArray y dejar un solo modelo vacío
+    this.modelos.clear();
+    this.modelos.push(this.crearModeloForm());
+
+    // 2. Resetear el formulario
+    this.form.reset();
+
+    // 3. Limpiar resultados de QR
+    this.qrSlugs = [];
+    this.mostrarQrSlugs = false;
+
+    // 4. Restaurar color de fondo inicial
+    this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
+  }
 }

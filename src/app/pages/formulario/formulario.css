@@ -192,3 +192,21 @@ select {
   color: #facc15;
   user-select: all;
 }
+
+.btn-clear {
+  background: #ef4444;
+  color: #ffffff;
+  padding: 14px 26px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.btn-clear:hover {
+  background: #dc2626;
+}
+
+.btn-clear:active {
+  background: #b91c1c;
+}
