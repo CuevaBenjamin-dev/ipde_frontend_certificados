@@ -12,6 +12,28 @@ import { FormularioService } from '../../services/formularioService';
 export class Formulario {
   form: FormGroup;
 
+  qrSlugs: string[] = [];
+  mostrarQrSlugs = false;
+
+  private normalizarTexto(texto: string): string {
+    return texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+      .replace(/[^a-zA-Z0-9]/g, '') // quitar espacios y símbolos
+      .toLowerCase();
+  }
+
+  private generarSlugQR(nombres: string, apellidos: string, tema: string): string {
+    const primerNombre = nombres.trim().split(' ')[0] || '';
+    const primerApellido = apellidos.trim().split(' ')[0] || '';
+
+    return (
+      this.normalizarTexto(primerNombre) +
+      this.normalizarTexto(primerApellido) +
+      this.normalizarTexto(tema)
+    );
+  }
+
   private MODELO_COLOR_MAP: Record<string, string> = {
     INSTITUTO: '#3b3a40',
     UNIVERSIDAD_2QRS: '#D14900',
@@ -246,6 +268,18 @@ export class Formulario {
       this.form.markAllAsTouched();
       return;
     }
+
+    // 🔥 Generar slugs QR en el frontend
+    this.qrSlugs = this.modelos.controls.map((grupo) => {
+      const g = grupo as FormGroup;
+      return this.generarSlugQR(
+        g.get('nombres')?.value,
+        g.get('apellidos')?.value,
+        g.get('temaDiplomado')?.value,
+      );
+    });
+
+    this.mostrarQrSlugs = true;
 
     const payload = { items: this.modelos.value };
 

@@ -119,4 +119,15 @@
       <button type="submit" class="btn-submit">Generar PPTX</button>
     </div>
   </form>
+  <!-- RESULTADO QR SLUGS -->
+  <div *ngIf="mostrarQrSlugs" class="qr-result">
+    <h3>Identificadores de códigos QR</h3>
+
+    <div class="qr-list">
+      <div class="qr-item" *ngFor="let slug of qrSlugs; let i = index">
+        <span class="qr-index">{{ i + 1 }}.</span>
+        <code>{{ slug }}</code>
+      </div>
+    </div>
+  </div>
 </div>
