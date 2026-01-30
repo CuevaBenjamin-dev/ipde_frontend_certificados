@@ -285,7 +285,10 @@ export class Formulario {
 
     this.service.generarPPTX(payload).subscribe({
       next: (archivo: Blob) => this.descargarArchivo(archivo),
-      error: () => alert('Ocurrió un error al generar el PPTX'),
+      error: (err) => {
+        console.error('ERROR BACKEND:', err);
+        alert('Error al generar el PPTX. Revisa la consola.');
+      },
     });
   }
 
