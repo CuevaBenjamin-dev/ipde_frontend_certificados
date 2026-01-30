@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class FormularioService {
-  private readonly API_URL = 'http://localhost:8000/api/diplomas';
+  private readonly API_URL = 'http://ipdebackendcertificados-production.up.railway.app/api/diplomas';
 
   constructor(private http: HttpClient) {}
 
