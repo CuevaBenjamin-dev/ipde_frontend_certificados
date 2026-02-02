@@ -3,6 +3,11 @@ import { Component, Renderer2 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormularioService } from '../../services/formularioService';
 
+interface ModeloFlags {
+  autoFechaEmision: boolean;
+  autoCreditos: boolean;
+}
+
 @Component({
   selector: 'app-formulario',
   imports: [CommonModule, ReactiveFormsModule],
@@ -10,6 +15,9 @@ import { FormularioService } from '../../services/formularioService';
   styleUrl: './formulario.css',
 })
 export class Formulario {
+  readonly MAX_MODELOS = 12;
+  modeloFlags: ModeloFlags[] = [];
+
   form: FormGroup;
 
   qrSlugs: string[] = [];
@@ -170,8 +178,10 @@ export class Formulario {
     private renderer: Renderer2,
   ) {
     this.form = this.fb.group({
-      modelos: this.fb.array([this.crearModeloForm()]),
+      modelos: this.fb.array([]),
     });
+
+    this.modelos.push(this.crearModeloForm(0));
 
     this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
     this.renderer.setStyle(document.body, 'transition', 'background-color 0.4s ease');
@@ -219,7 +229,12 @@ export class Formulario {
     });
   }
 
-  crearModeloForm(nombres: string = '', apellidos: string = ''): FormGroup {
+  crearModeloForm(index: number, nombres: string = '', apellidos: string = ''): FormGroup {
+    this.modeloFlags[index] = {
+      autoFechaEmision: true,
+      autoCreditos: true,
+    };
+
     const grupo = this.fb.group({
       modeloCertificado: ['', Validators.required],
       tipoModelo: ['', Validators.required],
@@ -233,30 +248,114 @@ export class Formulario {
       fechaFin: ['', Validators.required],
 
       horasAcademicas: [null, [Validators.required, Validators.min(1)]],
-      creditosAcademicos: [null, [Validators.required, Validators.min(1)]],
+      creditosAcademicos: [0, [Validators.required, Validators.min(0)]],
 
       folioNumero: ['', [Validators.required, Validators.minLength(3)]],
       fechaEmision: ['', Validators.required],
     });
 
-    grupo.get('fechaFin')?.valueChanges.subscribe(() => this.calcularFechaInicio(grupo));
+    // ---------- FECHA FIN → FECHA INICIO + EMISIÓN ----------
+    grupo.get('fechaFin')?.valueChanges.subscribe((fechaFin) => {
+      this.calcularFechaInicio(grupo);
 
-    grupo.get('horasAcademicas')?.valueChanges.subscribe(() => this.calcularFechaInicio(grupo));
+      const flags = this.modeloFlags[index];
+      const fechaEmisionCtrl = grupo.get('fechaEmision');
+
+      if (!flags || !fechaEmisionCtrl || !fechaFin) return;
+
+      // 🔁 AL CAMBIAR FECHA FIN, EL SISTEMA RECUPERA CONTROL
+      flags.autoFechaEmision = true;
+
+      fechaEmisionCtrl.setValue(fechaFin, { emitEvent: false });
+
+      // ✅ FORZAR ACTUALIZACIÓN INMEDIATA DEL FOLIO
+      actualizarFolio();
+    });
+
+    // ---------- FECHA EMISIÓN MANUAL ----------
+    grupo.get('fechaEmision')?.valueChanges.subscribe(() => {
+      const flags = this.modeloFlags[index];
+      if (flags) flags.autoFechaEmision = false;
+    });
+
+    // ---------- HORAS → CRÉDITOS ----------
+    grupo.get('horasAcademicas')?.valueChanges.subscribe((horas) => {
+      this.calcularFechaInicio(grupo);
+
+      const flags = this.modeloFlags[index];
+      const creditosCtrl = grupo.get('creditosAcademicos');
+      const horasNumber = Number(horas);
+
+      if (!creditosCtrl || !flags) return;
+
+      // 🔁 al cambiar horas, el sistema recupera control
+      flags.autoCreditos = true;
+
+      if (isNaN(horasNumber) || horasNumber <= 0) {
+        creditosCtrl.setValue(0, { emitEvent: false });
+        return;
+      }
+
+      const creditos = this.calcularCreditos(horasNumber);
+      creditosCtrl.setValue(creditos, { emitEvent: false });
+    });
+
+    // ---------- CRÉDITOS MANUAL ----------
+    grupo.get('creditosAcademicos')?.valueChanges.subscribe(() => {
+      const flags = this.modeloFlags[index];
+      if (flags) flags.autoCreditos = false;
+    });
 
     grupo.get('modeloCertificado')?.valueChanges.subscribe(() => this.actualizarColorFondo());
+
+    const actualizarFolio = () => {
+      const nombres = grupo.get('nombres')?.value;
+      const apellidos = grupo.get('apellidos')?.value;
+      const fechaEmision = grupo.get('fechaEmision')?.value;
+      const modeloCertificado = grupo.get('modeloCertificado')?.value;
+
+      const folioCtrl = grupo.get('folioNumero');
+      if (!folioCtrl) return;
+
+      const folioActual = folioCtrl.value;
+
+      const nuevoFolio = this.generarFolio(
+        nombres,
+        apellidos,
+        fechaEmision,
+        modeloCertificado,
+        folioActual,
+      );
+
+      folioCtrl.setValue(nuevoFolio, { emitEvent: false });
+    };
+
+    grupo.get('nombres')?.valueChanges.subscribe(actualizarFolio);
+    grupo.get('apellidos')?.valueChanges.subscribe(actualizarFolio);
+    grupo.get('fechaEmision')?.valueChanges.subscribe(actualizarFolio);
+    grupo.get('modeloCertificado')?.valueChanges.subscribe(actualizarFolio);
 
     return grupo;
   }
 
   agregarModelo(): void {
+    if (this.modelos.length >= this.MAX_MODELOS) {
+      alert(`Solo se permite un máximo de ${this.MAX_MODELOS} certificados.`);
+      return;
+    }
+
+    const index = this.modelos.length;
     const primerModelo = this.modelos.at(0) as FormGroup;
+
     const nombres = primerModelo.get('nombres')?.value || '';
     const apellidos = primerModelo.get('apellidos')?.value || '';
 
-    this.modelos.push(this.crearModeloForm(nombres, apellidos));
+    this.modelos.push(this.crearModeloForm(index, nombres, apellidos));
   }
 
   eliminarModelo(index: number): void {
+    this.modeloFlags.splice(index, 1);
+
     if (this.modelos.length > 1) {
       this.modelos.removeAt(index);
       this.actualizarColorFondo();
@@ -304,18 +403,62 @@ export class Formulario {
   }
 
   limpiarFormulario(): void {
-    // 1. Limpiar FormArray y dejar un solo modelo vacío
-    this.modelos.clear();
-    this.modelos.push(this.crearModeloForm());
+    this.modeloFlags = [];
 
-    // 2. Resetear el formulario
+    this.modelos.clear();
+    this.modelos.push(this.crearModeloForm(0));
+
     this.form.reset();
 
-    // 3. Limpiar resultados de QR
     this.qrSlugs = [];
     this.mostrarQrSlugs = false;
 
-    // 4. Restaurar color de fondo inicial
     this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
+  }
+
+  private calcularCreditos(horas: number): number {
+    if (!horas || horas <= 0) return 0;
+
+    // División exacta entre 16
+    return Math.round((horas / 16) * 100) / 100; // 2 decimales
+  }
+
+  private generarFolio(
+    nombres?: string | null,
+    apellidos?: string | null,
+    fechaEmision?: string | null,
+    modeloCertificado?: string | null,
+    folioActual?: string | null,
+  ): string {
+    if (!fechaEmision) return '';
+
+    const year = new Date(fechaEmision).getFullYear();
+
+    // 🟢 1. EXTRAER PREFIJO EXISTENTE (antes del primer " - ")
+    let prefijo = '';
+    if (folioActual && folioActual.includes(' - ')) {
+      prefijo = folioActual.split(' - ')[0];
+    }
+
+    // Si no hay prefijo, lo dejamos vacío
+    const base = prefijo ? `${prefijo} - ${year}` : ` - ${year}`;
+
+    // 🚫 Caso especial: Universidad Azul
+    if (modeloCertificado === 'UNIVERSIDAD_AZUL') {
+      return base;
+    }
+
+    // 🟢 2. CALCULAR INICIALES
+    const nombreSeguro = nombres ?? '';
+    const apellidosSeguro = apellidos ?? '';
+
+    const primerNombre = nombreSeguro.trim().charAt(0) || '';
+    const partesApellidos = apellidosSeguro.trim().split(/\s+/);
+    const primerApellido = partesApellidos[0]?.charAt(0) || '';
+    const segundoApellido = partesApellidos[1]?.charAt(0) || '';
+
+    const iniciales = (primerNombre + primerApellido + segundoApellido).toUpperCase();
+
+    return `${base} - ${iniciales}`;
   }
 }

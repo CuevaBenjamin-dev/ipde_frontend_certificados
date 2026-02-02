@@ -83,6 +83,10 @@
             <input type="number" formControlName="horasAcademicas" />
           </div>
 
+          <!-- <div class="field">
+            <label>Créditos académicos</label>
+            <input type="number" formControlName="creditosAcademicos" />
+          </div> -->
           <div class="field">
             <label>Créditos académicos</label>
             <input type="number" formControlName="creditosAcademicos" />
@@ -105,7 +109,14 @@
 
     <!-- ACCIONES -->
     <div class="actions">
-      <button type="button" class="btn-add" (click)="agregarModelo()">+ Agregar modelo</button>
+      <button
+        type="button"
+        class="btn-add"
+        (click)="agregarModelo()"
+        [disabled]="modelos.length >= MAX_MODELOS"
+      >
+        + Agregar modelo
+      </button>
 
       <a
         href="https://drive.google.com/file/d/1UBLykyA21zRTl-sqQzOj-y42hMMUhU_H/view"

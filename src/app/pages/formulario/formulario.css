@@ -210,3 +210,8 @@ select {
 .btn-clear:active {
   background: #b91c1c;
 }
+
+.btn-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
