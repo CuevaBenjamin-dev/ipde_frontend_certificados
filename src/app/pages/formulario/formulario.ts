@@ -199,6 +199,20 @@ export class Formulario {
     this.renderer.setStyle(document.body, 'background-color', color);
   }
 
+  private propagarModeloCertificado(valor: string, origenIndex: number): void {
+    this.modelos.controls.forEach((ctrl, i) => {
+      if (i === origenIndex) return;
+
+      const modeloCtrl = (ctrl as FormGroup).get('modeloCertificado');
+      if (modeloCtrl && modeloCtrl.value !== valor) {
+        modeloCtrl.setValue(valor, { emitEvent: false });
+      }
+    });
+
+    // 🔥 actualizar color de fondo una sola vez
+    this.actualizarColorFondo();
+  }
+
   private calcularFechaInicio(modelo: FormGroup): void {
     const fechaFinValue = modelo.get('fechaFin')?.value;
     const horas = modelo.get('horasAcademicas')?.value;
@@ -236,7 +250,10 @@ export class Formulario {
     };
 
     const grupo = this.fb.group({
-      modeloCertificado: ['', Validators.required],
+      modeloCertificado: [
+        this.modelos.at(0)?.get('modeloCertificado')?.value || '',
+        Validators.required,
+      ],
       tipoModelo: ['', Validators.required],
 
       nombres: [nombres, [Validators.required, Validators.minLength(2)]],
@@ -306,7 +323,15 @@ export class Formulario {
       if (flags) flags.autoCreditos = false;
     });
 
-    grupo.get('modeloCertificado')?.valueChanges.subscribe(() => this.actualizarColorFondo());
+    grupo.get('modeloCertificado')?.valueChanges.subscribe((valor) => {
+      if (!valor) return;
+
+      // 1️⃣ Propagar a todos los certificados
+      this.propagarModeloCertificado(valor, index);
+
+      // 2️⃣ Recalcular folio (por si cambia Universidad Azul)
+      actualizarFolio();
+    });
 
     const actualizarFolio = () => {
       const nombres = grupo.get('nombres')?.value;
