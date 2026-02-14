@@ -46,7 +46,8 @@ export class Formulario {
     INSTITUTO: '#3b3a40',
     UNIVERSIDAD_2QRS: '#D14900',
     UNIVERSIDAD_AZUL: '#004B57',
-    COLEGIO_ABOGADOS_CALLAO: '#0e8914', // azul institucional sobrio
+    COLEGIO_ABOGADOS_CALLAO: '#0e8914', 
+    COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e'
   };
 
   private HORAS_A_MESES: Record<number, number> = {
