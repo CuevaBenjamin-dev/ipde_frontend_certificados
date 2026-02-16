@@ -20,7 +20,7 @@ export class AuthService {
    */
   login(request: LoginRequest): Observable<ApiResponse<AuthTokens>> {
     return this.http.post<ApiResponse<AuthTokens>>(
-      'http://localhost:8080/auth/login',
+      `${this.apiUrl}/auth/login`,
       request,
       { withCredentials: true }, // 🔥 CLAVE para que el browser acepte la cookie
     );
@@ -34,7 +34,7 @@ export class AuthService {
    */
   refreshToken(): Observable<ApiResponse<string>> {
     return this.http.post<ApiResponse<string>>(
-      'http://localhost:8080/auth/refresh',
+      `${this.apiUrl}/auth/refresh`, 
       {},
       { withCredentials: true }, // 🔑 OBLIGATORIO para cookies
     );
@@ -48,7 +48,7 @@ export class AuthService {
    */
   logout(): Observable<ApiResponse<null>> {
     return this.http.post<ApiResponse<null>>(
-      'http://localhost:8080/auth/logout',
+      `${this.apiUrl}/auth/logout`,
       {},
       { withCredentials: true },
     );
