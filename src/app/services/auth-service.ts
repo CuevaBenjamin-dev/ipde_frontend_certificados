@@ -1,62 +1,49 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { LoginRequest, ApiResponse, AuthTokens } from '../models/interfaces';
-
-@Injectable({
-  providedIn: 'root',
-})
+import { environment } from '../../environments/environment.prod';
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/auth/login';
+  private apiUrl = environment.AUTH_API;
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Login del usuario.
-   *
-   * NIVEL 4:
-   * - Devuelve accessToken y refreshToken
-   */
   login(request: LoginRequest): Observable<ApiResponse<AuthTokens>> {
-    return this.http.post<ApiResponse<AuthTokens>>(
-      'http://localhost:8080/auth/login',
-      request,
-      { withCredentials: true }, // 🔥 CLAVE para que el browser acepte la cookie
-    );
+    return this.http
+      .post<ApiResponse<AuthTokens>>(`${this.apiUrl}/auth/login`, request, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((res) => {
+          const tokens = res?.data;
+          if (tokens?.accessToken) {
+            localStorage.setItem('accessToken', tokens.accessToken);
+          }
+        }),
+      );
   }
 
-  /**
-   * REFRESH TOKEN - NIVEL 7
-   *
-   * - NO se envía body
-   * - El refresh token viaja automáticamente en cookie HttpOnly
-   */
   refreshToken(): Observable<ApiResponse<string>> {
-    return this.http.post<ApiResponse<string>>(
-      'http://localhost:8080/auth/refresh',
-      {},
-      { withCredentials: true }, // 🔑 OBLIGATORIO para cookies
-    );
+    return this.http
+      .post<ApiResponse<string>>(`${this.apiUrl}/auth/refresh`, {}, { withCredentials: true })
+      .pipe(
+        tap((res) => {
+          // Aquí depende de tu backend:
+          // Si refresh devuelve un NUEVO accessToken como string en data:
+          if (res?.data) {
+            localStorage.setItem('accessToken', res.data);
+          }
+        }),
+      );
   }
 
-  /**
-   * LOGOUT - NIVEL 8
-   *
-   * - El backend borra cookie HttpOnly
-   * - Revoca refresh tokens
-   */
   logout(): Observable<ApiResponse<null>> {
-    return this.http.post<ApiResponse<null>>(
-      'http://localhost:8080/auth/logout',
-      {},
-      { withCredentials: true },
-    );
+    return this.http
+      .post<ApiResponse<null>>(`${this.apiUrl}/auth/logout`, {}, { withCredentials: true })
+      .pipe(tap(() => localStorage.removeItem('accessToken')));
   }
 
-  /**
-   * Lee el role desde el accessToken (solo para UX).
-   * OJO: esto NO reemplaza la seguridad del backend.
-   */
   getRole(): 'ADMIN' | 'USER' | null {
     const token = localStorage.getItem('accessToken');
     if (!token) return null;
