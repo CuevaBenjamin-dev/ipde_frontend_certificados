@@ -20,7 +20,7 @@ export class AuthService {
    */
   login(request: LoginRequest): Observable<ApiResponse<AuthTokens>> {
     return this.http.post<ApiResponse<AuthTokens>>(
-      this.apiUrl,
+      `${this.apiUrl}/auth/login`,
       request,
       { withCredentials: true }, // 🔥 CLAVE para que el browser acepte la cookie
     );
