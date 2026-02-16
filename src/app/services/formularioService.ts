@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.prod';
@@ -13,23 +13,10 @@ export class FormularioService {
 
   constructor(private http: HttpClient) {}
 
-  // generarPPTX(payload: any): Observable<Blob> {
-  //   return this.http.post(this.API_URL, payload, {
-  //     responseType: 'blob',
-  //   });
-  // }
-
+  /** Envía múltiples modelos y recibe un solo PPTX */
   generarPPTX(payload: any): Observable<Blob> {
-    // 🔹 NUEVO (1 línea lógica)
-    const token = localStorage.getItem('accessToken');
-
-    // 🔹 NUEVO (header condicional, no rompe nada)
-    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : undefined;
-
-    // 🔹 MISMO POST DE SIEMPRE
     return this.http.post(this.API_URL, payload, {
       responseType: 'blob',
-      headers,
     });
   }
 }
