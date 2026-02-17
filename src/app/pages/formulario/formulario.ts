@@ -2,9 +2,6 @@ import { CommonModule } from '@angular/common';
 import { Component, Renderer2 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormularioService } from '../../services/formularioService';
-import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth-service';
-import { EventsService } from '../../services/events-service';
 
 interface ModeloFlags {
   autoFechaEmision: boolean;
@@ -180,9 +177,6 @@ export class Formulario {
     private fb: FormBuilder,
     private service: FormularioService,
     private renderer: Renderer2,
-    private router: Router,
-    private authService: AuthService,
-    private eventsService: EventsService,
   ) {
     this.form = this.fb.group({
       modelos: this.fb.array([]),
@@ -432,12 +426,6 @@ export class Formulario {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-
-    // ✅ Evento real de descarga (cliente)
-    this.eventsService.track('PPTX_DOWNLOADED', this.modelos.length, 'WEB').subscribe({
-      next: () => {},
-      error: (e) => console.warn('Tracking falló (no crítico):', e),
-    });
   }
 
   limpiarFormulario(): void {
@@ -498,25 +486,5 @@ export class Formulario {
     const iniciales = (primerNombre + primerApellido + segundoApellido).toUpperCase();
 
     return `${base} - ${iniciales}`;
-  }
-
-  cerrarSesion(): void {
-    /**
-     * LOGOUT - NIVEL 8
-     *
-     * - Llama al backend
-     * - Revoca sesión
-     * - Borra cookie HttpOnly
-     */
-    this.authService.logout().subscribe({
-      next: () => {
-        localStorage.removeItem('accessToken');
-        this.router.navigate(['/login']);
-      },
-      error: () => {
-        localStorage.removeItem('accessToken');
-        this.router.navigate(['/login']);
-      },
-    });
   }
 }

@@ -215,27 +215,3 @@ select {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
-.header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.btn-logout {
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-logout:hover {
-  background-color: #b91c1c;
-}
-
-.btn-logout:active {
-  background-color: #991b1b;
-}
