@@ -215,3 +215,20 @@ select {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.tema-warning {
+  background-color: #fff3cd; /* amarillo suave */
+  border: 1px solid #ffeeba;
+}
+
+.tema-warning:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+}
+
+.tema-warning-text {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #856404;
+}

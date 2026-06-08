@@ -18,6 +18,18 @@ export class Formulario {
   readonly MAX_MODELOS = 12;
   modeloFlags: ModeloFlags[] = [];
 
+  isTemaExcedidoUADiplomado(i: number): boolean {
+    const grupo = this.modelos.at(i) as FormGroup;
+    if (!grupo) return false;
+
+    if (!this.esUADiplomado(grupo)) return false;
+
+    const tema: string = (grupo.get('temaDiplomado')?.value ?? '').toString();
+
+    // alerta cuando está en el límite o lo supera
+    return tema.length >= this.MAX_TEMA_UA_DIPLOMADO;
+  }
+
   form: FormGroup;
 
   qrSlugs: string[] = [];
@@ -46,8 +58,8 @@ export class Formulario {
     INSTITUTO: '#3b3a40',
     UNIVERSIDAD_2QRS: '#D14900',
     UNIVERSIDAD_AZUL: '#004B57',
-    COLEGIO_ABOGADOS_CALLAO: '#0e8914', 
-    COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e'
+    COLEGIO_ABOGADOS_CALLAO: '#0e8914',
+    COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e',
   };
 
   private HORAS_A_MESES: Record<number, number> = {
@@ -270,6 +282,8 @@ export class Formulario {
 
       folioNumero: ['', [Validators.required, Validators.minLength(3)]],
       fechaEmision: ['', Validators.required],
+      codigoEstudiante: [''],
+      ciudad: ['', [Validators.required, Validators.minLength(2)]],
     });
 
     // ---------- FECHA FIN → FECHA INICIO + EMISIÓN ----------
@@ -364,6 +378,41 @@ export class Formulario {
     return grupo;
   }
 
+  readonly MAX_TEMA_UA_DIPLOMADO = 95;
+
+  private esUADiplomado(grupo: FormGroup): boolean {
+    const modelo = grupo.get('modeloCertificado')?.value;
+    const tipo = grupo.get('tipoModelo')?.value;
+    return modelo === 'UNIVERSIDAD_AZUL' && tipo === 'DIPLOMADO';
+  }
+
+  onTemaInput(i: number): void {
+    const grupo = this.modelos.at(i) as FormGroup;
+    if (!grupo) return;
+
+    // Solo aplica para Universidad Azul + Diplomado
+    if (!this.esUADiplomado(grupo)) return;
+
+    const ctrl = grupo.get('temaDiplomado');
+    if (!ctrl) return;
+
+    const original = (ctrl.value ?? '').toString();
+
+    // 1) Convertir múltiples espacios en 1 (en cualquier parte del texto)
+    // 2) Mantener el texto tal cual (no quitamos espacios simples)
+    let normalizado = original.replace(/\s{2,}/g, ' ');
+
+    // 3) Limitar a 102 caracteres exactos (incluye espacios)
+    if (normalizado.length > this.MAX_TEMA_UA_DIPLOMADO) {
+      normalizado = normalizado.slice(0, this.MAX_TEMA_UA_DIPLOMADO);
+    }
+
+    // Solo actualiza si cambió, para evitar loops
+    if (normalizado !== original) {
+      ctrl.setValue(normalizado, { emitEvent: false });
+    }
+  }
+
   agregarModelo(): void {
     if (this.modelos.length >= this.MAX_MODELOS) {
       alert(`Solo se permite un máximo de ${this.MAX_MODELOS} certificados.`);
@@ -406,7 +455,16 @@ export class Formulario {
 
     this.mostrarQrSlugs = true;
 
-    const payload = { items: this.modelos.value };
+    // const payload = { items: this.modelos.value };
+    const items = this.modelos.controls.map((ctrl, i) => {
+      const g = ctrl as FormGroup;
+      return {
+        ...g.value,
+        qrSlug: this.qrSlugs[i], // ✅ nuevo
+      };
+    });
+
+    const payload = { items };
 
     this.service.generarPPTX(payload).subscribe({
       next: (archivo: Blob) => this.descargarArchivo(archivo),
@@ -418,13 +476,20 @@ export class Formulario {
   }
 
   private descargarArchivo(blob: Blob): void {
-    const url = window.URL.createObjectURL(blob);
+    const pptxBlob = new Blob([blob], {
+      type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    });
+
+    const url = window.URL.createObjectURL(pptxBlob);
+
     const a = document.createElement('a');
     a.href = url;
     a.download = `CERTIFICADOS_${Date.now()}.pptx`;
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+
     window.URL.revokeObjectURL(url);
   }
 
