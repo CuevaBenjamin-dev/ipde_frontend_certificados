@@ -256,7 +256,12 @@ export class Formulario {
     });
   }
 
-  crearModeloForm(index: number, nombres: string = '', apellidos: string = ''): FormGroup {
+  crearModeloForm(
+    index: number,
+    nombres: string = '',
+    apellidos: string = '',
+    codigoEstudiante: string = '',
+  ): FormGroup {
     this.modeloFlags[index] = {
       autoFechaEmision: true,
       autoCreditos: true,
@@ -282,8 +287,8 @@ export class Formulario {
 
       folioNumero: ['', [Validators.required, Validators.minLength(3)]],
       fechaEmision: ['', Validators.required],
-      codigoEstudiante: [''],
-      ciudad: ['', [Validators.required, Validators.minLength(2)]],
+      codigoEstudiante: [codigoEstudiante],
+      ciudad: ['Trujillo', [Validators.required, Validators.minLength(2)]],
     });
 
     // ---------- FECHA FIN → FECHA INICIO + EMISIÓN ----------
@@ -413,6 +418,23 @@ export class Formulario {
     }
   }
 
+  private incrementarCodigoEstudiante(codigo: string): string {
+    const valor = (codigo ?? '').toString().trim();
+
+    if (!valor) return '';
+
+    const match = valor.match(/(\d+)(?!.*\d)/);
+
+    if (!match) return valor;
+
+    const numeroActual = match[0];
+    const inicio = match.index ?? 0;
+
+    const numeroIncrementado = String(Number(numeroActual) + 1).padStart(numeroActual.length, '0');
+
+    return valor.slice(0, inicio) + numeroIncrementado + valor.slice(inicio + numeroActual.length);
+  }
+
   agregarModelo(): void {
     if (this.modelos.length >= this.MAX_MODELOS) {
       alert(`Solo se permite un máximo de ${this.MAX_MODELOS} certificados.`);
@@ -420,12 +442,17 @@ export class Formulario {
     }
 
     const index = this.modelos.length;
+
     const primerModelo = this.modelos.at(0) as FormGroup;
+    const ultimoModelo = this.modelos.at(this.modelos.length - 1) as FormGroup;
 
     const nombres = primerModelo.get('nombres')?.value || '';
     const apellidos = primerModelo.get('apellidos')?.value || '';
 
-    this.modelos.push(this.crearModeloForm(index, nombres, apellidos));
+    const codigoActual = ultimoModelo.get('codigoEstudiante')?.value || '';
+    const siguienteCodigo = this.incrementarCodigoEstudiante(codigoActual);
+
+    this.modelos.push(this.crearModeloForm(index, nombres, apellidos, siguienteCodigo));
   }
 
   eliminarModelo(index: number): void {
