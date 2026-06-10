@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { Component, Renderer2 } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FormularioService } from '../../services/formularioService';
@@ -17,6 +18,9 @@ interface ModeloFlags {
 export class Formulario {
   readonly MAX_MODELOS = 12;
   modeloFlags: ModeloFlags[] = [];
+
+  private readonly FOLIOS_URL = 'assets/folios.json';
+  private foliosPorFecha: Record<string, string> = {};
 
   isTemaExcedidoUADiplomado(i: number): boolean {
     const grupo = this.modelos.at(i) as FormGroup;
@@ -189,13 +193,14 @@ export class Formulario {
     private fb: FormBuilder,
     private service: FormularioService,
     private renderer: Renderer2,
+    private http: HttpClient,
   ) {
     this.form = this.fb.group({
       modelos: this.fb.array([]),
     });
 
     this.modelos.push(this.crearModeloForm(0));
-
+    this.cargarFolios();
     this.renderer.setStyle(document.body, 'background-color', '#f3f4f6');
     this.renderer.setStyle(document.body, 'transition', 'background-color 0.4s ease');
   }
@@ -254,6 +259,47 @@ export class Formulario {
     modelo.get('fechaInicio')?.setValue(`${yyyy}-${mm}-${dd}`, {
       emitEvent: false,
     });
+  }
+
+  private cargarFolios(): void {
+    this.http.get<Record<string, string>>(this.FOLIOS_URL).subscribe({
+      next: (folios) => {
+        this.foliosPorFecha = folios ?? {};
+        this.recalcularTodosLosFolios();
+      },
+      error: (err) => {
+        console.error('No se pudo cargar el archivo de folios:', err);
+        this.foliosPorFecha = {};
+      },
+    });
+  }
+
+  private obtenerPrefijoFolioPorFecha(fechaEmision?: string | null): string {
+    const fecha = (fechaEmision ?? '').toString().trim();
+
+    if (!fecha) return '';
+
+    return this.foliosPorFecha[fecha] ?? '';
+  }
+
+  private recalcularTodosLosFolios(): void {
+    this.modelos.controls.forEach((ctrl) => {
+      this.actualizarFolioDeGrupo(ctrl as FormGroup);
+    });
+  }
+
+  private actualizarFolioDeGrupo(grupo: FormGroup): void {
+    const nombres = grupo.get('nombres')?.value;
+    const apellidos = grupo.get('apellidos')?.value;
+    const fechaEmision = grupo.get('fechaEmision')?.value;
+    const modeloCertificado = grupo.get('modeloCertificado')?.value;
+
+    const folioCtrl = grupo.get('folioNumero');
+    if (!folioCtrl) return;
+
+    const nuevoFolio = this.generarFolio(nombres, apellidos, fechaEmision, modeloCertificado);
+
+    folioCtrl.setValue(nuevoFolio, { emitEvent: false });
   }
 
   crearModeloForm(
@@ -353,26 +399,30 @@ export class Formulario {
       actualizarFolio();
     });
 
+    // const actualizarFolio = () => {
+    //   const nombres = grupo.get('nombres')?.value;
+    //   const apellidos = grupo.get('apellidos')?.value;
+    //   const fechaEmision = grupo.get('fechaEmision')?.value;
+    //   const modeloCertificado = grupo.get('modeloCertificado')?.value;
+
+    //   const folioCtrl = grupo.get('folioNumero');
+    //   if (!folioCtrl) return;
+
+    //   const folioActual = folioCtrl.value;
+
+    //   const nuevoFolio = this.generarFolio(
+    //     nombres,
+    //     apellidos,
+    //     fechaEmision,
+    //     modeloCertificado,
+    //     folioActual,
+    //   );
+
+    //   folioCtrl.setValue(nuevoFolio, { emitEvent: false });
+    // };
+
     const actualizarFolio = () => {
-      const nombres = grupo.get('nombres')?.value;
-      const apellidos = grupo.get('apellidos')?.value;
-      const fechaEmision = grupo.get('fechaEmision')?.value;
-      const modeloCertificado = grupo.get('modeloCertificado')?.value;
-
-      const folioCtrl = grupo.get('folioNumero');
-      if (!folioCtrl) return;
-
-      const folioActual = folioCtrl.value;
-
-      const nuevoFolio = this.generarFolio(
-        nombres,
-        apellidos,
-        fechaEmision,
-        modeloCertificado,
-        folioActual,
-      );
-
-      folioCtrl.setValue(nuevoFolio, { emitEvent: false });
+      this.actualizarFolioDeGrupo(grupo);
     };
 
     grupo.get('nombres')?.valueChanges.subscribe(actualizarFolio);
@@ -526,8 +576,6 @@ export class Formulario {
     this.modelos.clear();
     this.modelos.push(this.crearModeloForm(0));
 
-    this.form.reset();
-
     this.qrSlugs = [];
     this.mostrarQrSlugs = false;
 
@@ -541,24 +589,62 @@ export class Formulario {
     return Math.round((horas / 16) * 100) / 100; // 2 decimales
   }
 
+  // private generarFolio(
+  //   nombres?: string | null,
+  //   apellidos?: string | null,
+  //   fechaEmision?: string | null,
+  //   modeloCertificado?: string | null,
+  //   folioActual?: string | null,
+  // ): string {
+  //   if (!fechaEmision) return '';
+
+  //   const year = new Date(fechaEmision).getFullYear();
+
+  //   // 🟢 1. EXTRAER PREFIJO EXISTENTE (antes del primer " - ")
+  //   let prefijo = '';
+  //   if (folioActual && folioActual.includes(' - ')) {
+  //     prefijo = folioActual.split(' - ')[0];
+  //   }
+
+  //   // Si no hay prefijo, lo dejamos vacío
+  //   const base = prefijo ? `${prefijo} - ${year}` : ` - ${year}`;
+
+  //   // 🚫 Caso especial: Universidad Azul
+  //   if (modeloCertificado === 'UNIVERSIDAD_AZUL') {
+  //     return base;
+  //   }
+
+  //   // 🟢 2. CALCULAR INICIALES
+  //   const nombreSeguro = nombres ?? '';
+  //   const apellidosSeguro = apellidos ?? '';
+
+  //   const primerNombre = nombreSeguro.trim().charAt(0) || '';
+  //   const partesApellidos = apellidosSeguro.trim().split(/\s+/);
+  //   const primerApellido = partesApellidos[0]?.charAt(0) || '';
+  //   const segundoApellido = partesApellidos[1]?.charAt(0) || '';
+
+  //   const iniciales = (primerNombre + primerApellido + segundoApellido).toUpperCase();
+
+  //   return `${base} - ${iniciales}`;
+  // }
+
   private generarFolio(
     nombres?: string | null,
     apellidos?: string | null,
     fechaEmision?: string | null,
     modeloCertificado?: string | null,
-    folioActual?: string | null,
   ): string {
     if (!fechaEmision) return '';
 
-    const year = new Date(fechaEmision).getFullYear();
+    const fechaSegura = fechaEmision.toString().trim();
 
-    // 🟢 1. EXTRAER PREFIJO EXISTENTE (antes del primer " - ")
-    let prefijo = '';
-    if (folioActual && folioActual.includes(' - ')) {
-      prefijo = folioActual.split(' - ')[0];
-    }
+    // Extraemos el año directamente del string YYYY-MM-DD.
+    // Esto evita errores de zona horaria con new Date('YYYY-MM-DD').
+    const year = fechaSegura.slice(0, 4);
 
-    // Si no hay prefijo, lo dejamos vacío
+    // Número de folio según la fecha del JSON.
+    const prefijo = this.obtenerPrefijoFolioPorFecha(fechaSegura);
+
     const base = prefijo ? `${prefijo} - ${year}` : ` - ${year}`;
 
     // 🚫 Caso especial: Universidad Azul
@@ -566,7 +652,6 @@ export class Formulario {
       return base;
     }
 
-    // 🟢 2. CALCULAR INICIALES
     const nombreSeguro = nombres ?? '';
     const apellidosSeguro = apellidos ?? '';
 
@@ -577,6 +662,6 @@ export class Formulario {
 
     const iniciales = (primerNombre + primerApellido + segundoApellido).toUpperCase();
 
-    return `${base} - ${iniciales}`;
+    return iniciales ? `${base} - ${iniciales}` : base;
   }
 }
