@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -6,16 +6,18 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class FormularioService {
-  private readonly API_URL = 'https://ipdebackendcertificados-production.up.railway.app/api/diplomas';
+  private readonly API_URL =
+    'https://ipdebackendcertificados-production.up.railway.app/api/diplomas';
   // private readonly API_URL = 'https://ipdebackendcertificadosautomatition-production.up.railway.app/api/diplomas';
   // private readonly API_URL = 'http://localhost:8000/api/diplomas';
 
   constructor(private http: HttpClient) {}
 
-  /** Envía múltiples modelos y recibe un solo PPTX */
-  generarPPTX(payload: any): Observable<Blob> {
+  /** Envía múltiples modelos y recibe el PPTX con headers incluidos */
+  generarPPTX(payload: any): Observable<HttpResponse<Blob>> {
     return this.http.post(this.API_URL, payload, {
       responseType: 'blob',
+      observe: 'response',
     });
   }
 }

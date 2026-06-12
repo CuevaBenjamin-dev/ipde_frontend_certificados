@@ -21,6 +21,45 @@ export class Formulario {
 
   private readonly FOLIOS_URL = 'assets/folios.json';
   private foliosPorFecha: Record<string, string> = {};
+  private MODELO_NOMBRE_ARCHIVO_MAP: Record<string, string> = {
+    INSTITUTO: 'Instituto',
+    UNIVERSIDAD_2QRS: 'Universidad 2QRS',
+    UNIVERSIDAD_AZUL: 'Universidad Azul',
+    COLEGIO_ABOGADOS_CALLAO: 'Colegio de Abogados del Callao',
+    COLEGIO_DE_PROFESORES_DEL_PERU: 'Colegio de Profesores del Perú',
+  };
+
+  private construirNombreArchivoDesdeFormulario(): string {
+    const primerModelo = this.modelos.at(0) as FormGroup;
+
+    const nombres = (primerModelo.get('nombres')?.value ?? '').toString();
+    const apellidos = (primerModelo.get('apellidos')?.value ?? '').toString();
+    const modeloCertificado = (primerModelo.get('modeloCertificado')?.value ?? '').toString();
+
+    const nombreCompleto = this.capitalizarNombreCompleto(`${nombres} ${apellidos}`);
+    const nombreModelo =
+      this.MODELO_NOMBRE_ARCHIVO_MAP[modeloCertificado] ?? modeloCertificado.replaceAll('_', ' ');
+
+    return this.limpiarNombreArchivo(`${nombreCompleto} - ${nombreModelo}.pptx`);
+  }
+
+  private capitalizarNombreCompleto(texto: string): string {
+    return texto
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((palabra) => palabra.charAt(0).toUpperCase() + palabra.slice(1))
+      .join(' ');
+  }
+
+  private limpiarNombreArchivo(texto: string): string {
+    return texto
+      .normalize('NFC')
+      .replace(/[\\/:*?"<>|]+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
   isTemaExcedidoUADiplomado(i: number): boolean {
     const grupo = this.modelos.at(i) as FormGroup;
@@ -543,8 +582,28 @@ export class Formulario {
 
     const payload = { items };
 
+    // this.service.generarPPTX(payload).subscribe({
+    //   next: (archivo: Blob) => this.descargarArchivo(archivo),
+    //   error: (err) => {
+    //     console.error('ERROR BACKEND:', err);
+    //     alert('Error al generar el PPTX. Revisa la consola.');
+    //   },
+    // });
     this.service.generarPPTX(payload).subscribe({
-      next: (archivo: Blob) => this.descargarArchivo(archivo),
+      next: (response) => {
+        const archivo = response.body;
+
+        if (!archivo) {
+          alert('No se recibió el archivo PPTX.');
+          return;
+        }
+
+        const contentDisposition = response.headers.get('Content-Disposition');
+
+        const nombreArchivo = this.obtenerNombreArchivoDesdeContentDisposition(contentDisposition);
+
+        this.descargarArchivo(archivo, nombreArchivo);
+      },
       error: (err) => {
         console.error('ERROR BACKEND:', err);
         alert('Error al generar el PPTX. Revisa la consola.');
@@ -552,7 +611,25 @@ export class Formulario {
     });
   }
 
-  private descargarArchivo(blob: Blob): void {
+  // private descargarArchivo(blob: Blob): void {
+  //   const pptxBlob = new Blob([blob], {
+  //     type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  //   });
+
+  //   const url = window.URL.createObjectURL(pptxBlob);
+
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = `CERTIFICADOS_${Date.now()}.pptx`;
+
+  //   document.body.appendChild(a);
+  //   a.click();
+  //   document.body.removeChild(a);
+
+  //   window.URL.revokeObjectURL(url);
+  // }
+
+  private descargarArchivo(blob: Blob, nombreArchivo: string): void {
     const pptxBlob = new Blob([blob], {
       type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
     });
@@ -561,13 +638,40 @@ export class Formulario {
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `CERTIFICADOS_${Date.now()}.pptx`;
+
+    // Ahora ya NO usamos CERTIFICADOS_${Date.now()}.
+    // Usamos el nombre que viene del backend.
+    a.download = nombreArchivo;
 
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
     window.URL.revokeObjectURL(url);
+  }
+
+  private obtenerNombreArchivoDesdeContentDisposition(contentDisposition: string | null): string {
+    if (!contentDisposition) {
+      return this.construirNombreArchivoDesdeFormulario();
+    }
+
+    // Caso recomendado por backend:
+    // filename*=UTF-8''Diana%20Carolina%20Ch%C3%A1vez%20-%20Universidad%202QRS.pptx
+    const filenameUtf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+
+    if (filenameUtf8Match?.[1]) {
+      return decodeURIComponent(filenameUtf8Match[1].trim().replace(/^"|"$/g, ''));
+    }
+
+    // Caso alternativo:
+    // filename="Diana_Carolina_Chavez_-_Universidad_2QRS.pptx"
+    const filenameMatch = contentDisposition.match(/filename="([^"]+)"/i);
+
+    if (filenameMatch?.[1]) {
+      return filenameMatch[1].trim();
+    }
+
+    return this.construirNombreArchivoDesdeFormulario();
   }
 
   limpiarFormulario(): void {
