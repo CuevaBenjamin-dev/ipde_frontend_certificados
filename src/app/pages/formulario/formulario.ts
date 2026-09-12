@@ -27,6 +27,7 @@ export class Formulario {
     UNIVERSIDAD_AZUL: 'Universidad Azul',
     COLEGIO_ABOGADOS_CALLAO: 'Colegio de Abogados del Callao',
     COLEGIO_DE_PROFESORES_DEL_PERU: 'Colegio de Profesores del Perú',
+    COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: 'Colegio de Profesores del Perú - Nuevo',
   };
 
   private construirNombreArchivoDesdeFormulario(): string {
@@ -103,6 +104,7 @@ export class Formulario {
     UNIVERSIDAD_AZUL: '#004B57',
     COLEGIO_ABOGADOS_CALLAO: '#0e8914',
     COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e',
+    COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: '#00af9e',
   };
 
   private HORAS_A_MESES: Record<number, number> = {
