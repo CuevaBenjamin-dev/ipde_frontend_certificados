@@ -27,6 +27,7 @@ export class Formulario {
     UNIVERSIDAD_AZUL: 'Universidad Azul',
     COLEGIO_ABOGADOS_CALLAO: 'Colegio de Abogados del Callao',
     IPDE_CAC: 'IPDE CAC',
+    ESFP: 'ESFP',
     COLEGIO_DE_PROFESORES_DEL_PERU: 'Colegio de Profesores del Perú',
     COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: 'Colegio de Profesores del Perú - Nuevo',
   };
@@ -105,6 +106,7 @@ export class Formulario {
     UNIVERSIDAD_AZUL: '#004B57',
     COLEGIO_ABOGADOS_CALLAO: '#0e8914',
     IPDE_CAC: '#1a6b48',
+    ESFP: '#0b2848',
     COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e',
     COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: '#00af9e',
   };
@@ -270,7 +272,7 @@ export class Formulario {
       }
     });
 
-    if (valor === 'IPDE_CAC') {
+    if (['IPDE_CAC', 'ESFP'].includes(valor)) {
       this.modelos.controls.forEach((ctrl) => {
         const tipoCtrl = (ctrl as FormGroup).get('tipoModelo');
         if (!['CURSO', 'DIPLOMADO', 'PROGRAMA DE ESPECIALIZACIÓN'].includes(tipoCtrl?.value)) {
@@ -371,7 +373,7 @@ export class Formulario {
         Validators.required,
       ],
       tipoModelo: [
-        this.modelos.at(0)?.get('modeloCertificado')?.value === 'IPDE_CAC'
+        ['IPDE_CAC', 'ESFP'].includes(this.modelos.at(0)?.get('modeloCertificado')?.value)
           ? this.modelos.at(0)?.get('tipoModelo')?.value || 'CURSO'
           : '',
         Validators.required,
