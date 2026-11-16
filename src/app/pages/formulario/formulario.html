@@ -34,6 +34,7 @@
             <option value="UNIVERSIDAD_2QRS">Universidad 2QRS</option>
             <option value="UNIVERSIDAD_AZUL">Universidad Azul</option>
             <option value="COLEGIO_ABOGADOS_CALLAO">Colegio de Abogados del Callao</option>
+            <option value="IPDE_CAC">IPDE - CAC</option>
             <option value="COLEGIO_DE_PROFESORES_DEL_PERU">Colegio de Profesores del Perú</option>
             <option value="COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO">
               Colegio de Profesores del Perú - Nuevo
@@ -49,8 +50,12 @@
             <option value="DIPLOMADO">Diplomado</option>
             <option value="PROGRAMA DE ESPECIALIZACIÓN">Programa de Especialización</option>
             <option value="CURSO">Curso</option>
-            <option value="CURSO_DE_CAPACITACION">Curso de Capacitación</option>
-            <option value="CURSO_DE_ACTUALIZACION">Curso de Actualización</option>
+            <option value="CURSO_DE_CAPACITACION" [disabled]="modelo.get('modeloCertificado')?.value === 'IPDE_CAC'">
+              Curso de Capacitación
+            </option>
+            <option value="CURSO_DE_ACTUALIZACION" [disabled]="modelo.get('modeloCertificado')?.value === 'IPDE_CAC'">
+              Curso de Actualización
+            </option>
           </select>
         </div>
 

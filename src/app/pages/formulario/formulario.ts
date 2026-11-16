@@ -26,6 +26,7 @@ export class Formulario {
     UNIVERSIDAD_2QRS: 'Universidad 2QRS',
     UNIVERSIDAD_AZUL: 'Universidad Azul',
     COLEGIO_ABOGADOS_CALLAO: 'Colegio de Abogados del Callao',
+    IPDE_CAC: 'IPDE CAC',
     COLEGIO_DE_PROFESORES_DEL_PERU: 'Colegio de Profesores del Perú',
     COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: 'Colegio de Profesores del Perú - Nuevo',
   };
@@ -103,6 +104,7 @@ export class Formulario {
     UNIVERSIDAD_2QRS: '#D14900',
     UNIVERSIDAD_AZUL: '#004B57',
     COLEGIO_ABOGADOS_CALLAO: '#0e8914',
+    IPDE_CAC: '#1a6b48',
     COLEGIO_DE_PROFESORES_DEL_PERU: '#00af9e',
     COLEGIO_DE_PROFESORES_DEL_PERU_NUEVO: '#00af9e',
   };
@@ -268,6 +270,15 @@ export class Formulario {
       }
     });
 
+    if (valor === 'IPDE_CAC') {
+      this.modelos.controls.forEach((ctrl) => {
+        const tipoCtrl = (ctrl as FormGroup).get('tipoModelo');
+        if (!['CURSO', 'DIPLOMADO', 'PROGRAMA DE ESPECIALIZACIÓN'].includes(tipoCtrl?.value)) {
+          tipoCtrl?.setValue('CURSO', { emitEvent: false });
+        }
+      });
+    }
+
     // 🔥 actualizar color de fondo una sola vez
     this.actualizarColorFondo();
   }
@@ -359,7 +370,12 @@ export class Formulario {
         this.modelos.at(0)?.get('modeloCertificado')?.value || '',
         Validators.required,
       ],
-      tipoModelo: ['', Validators.required],
+      tipoModelo: [
+        this.modelos.at(0)?.get('modeloCertificado')?.value === 'IPDE_CAC'
+          ? this.modelos.at(0)?.get('tipoModelo')?.value || 'CURSO'
+          : '',
+        Validators.required,
+      ],
 
       nombres: [nombres, [Validators.required, Validators.minLength(2)]],
       apellidos: [apellidos, [Validators.required, Validators.minLength(2)]],
